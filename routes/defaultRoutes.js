@@ -1,10 +1,14 @@
 const express = require('express');
+const session = require('express-session');
+
 const router = express.Router();
 const defaultController = require('../controllers/defaultController');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const User = require('../models/UserModel').User;
+const { route } = require('./adminRoutes');
+
 
 router.all('/*', (req, res, next) => {
 
@@ -24,7 +28,7 @@ passport.use(new LocalStrategy({
     usernameField: 'email',
     passReqToCallback: true
 }, (req, email, password, done) => {
-    User.findOne({email: email}).then(user => {
+    User.findOne({ email: email }).then(user => {
         if (!user) {
             return done(null, false, req.flash('error-message', 'User not found with this email.'));
         }
@@ -38,6 +42,8 @@ passport.use(new LocalStrategy({
                 return done(null, false, req.flash('error-message', 'Invalid Username or Password'));
             }
 
+            //get role
+            req.session.role = user.role;
             return done(null, user, req.flash('success-message', 'Login Successful'));
         });
 
@@ -55,6 +61,7 @@ passport.deserializeUser(function(id, done) {
 });
 
 
+
 // noinspection JSCheckFunctionSignatures
 router.route('/login')
     .get(defaultController.loginGet)
@@ -64,7 +71,7 @@ router.route('/login')
         failureFlash: true,
         successFlash: true,
         session: true
-    }) ,defaultController.loginPost);
+    }), defaultController.loginPost);
 
 
 // noinspection JSCheckFunctionSignatures
@@ -76,13 +83,41 @@ router.route('/register')
 router.route('/post/:id')
     .get(defaultController.getSinglePost)
     .post(defaultController.submitComment);
-    
 
+
+router.get('/set_session', (req, res) => {
+    //set a object to session
+    req.session.role = {
+        website: 'anonystick.com',
+        type: 'blog javascript',
+        like: '4550'
+    }
+
+    return res.status(200).json({ status: 'success' })
+})
+router.get("/getRole", (req, res) => {
+    if (req.session.role) {
+        return res.status(200).json({ status: 'success', session: req.session.role })
+    }
+    return res.status(200).json({ status: 'error', session: 'No session' })
+
+
+})
+
+router.get("/manage", (req, res) => {
+    if (req.session.role == "AD") {
+        res.render("admin/manage")
+    } else {
+        res.render("admin/invalid")
+    }
+})
 
 router.get('/logout', (req, res) => {
     req.logOut();
     req.flash('success-message', 'Logout was successful');
     res.redirect('/');
 });
+
+
 
 module.exports = router;

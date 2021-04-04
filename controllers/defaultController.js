@@ -4,20 +4,20 @@ const Comment = require('../models/CommentModel').Comment;
 const bcrypt = require('bcryptjs');
 const User = require('../models/UserModel').User;
 
-const {isEmpty} = require('../config/customFunctions');
+const { isEmpty } = require('../config/customFunctions');
 
 module.exports = {
 
-    index: async (req, res) => {
+    index: async(req, res) => {
 
         const posts = await Post.find();
         const categories = await Category.find();
-        res.render('default/index', {posts: posts, categories: categories});
+        res.render('default/index', { posts: posts, categories: categories });
     },
 
     /* LOGIN ROUTES */
     loginGet: (req, res) => {
-        res.render('default/login', {message: req.flash('error')});
+        res.render('default/login', { message: req.flash('error') });
     },
 
 
@@ -35,19 +35,19 @@ module.exports = {
         let errors = [];
 
         if (!req.body.firstName) {
-            errors.push({message: 'First name is mandatory'});
+            errors.push({ message: 'First name is mandatory' });
         }
         if (!req.body.lastName) {
-            errors.push({message: 'Last name is mandatory'});
+            errors.push({ message: 'Last name is mandatory' });
         }
         if (!req.body.email) {
-            errors.push({message: 'Email field is mandatory'});
+            errors.push({ message: 'Email field is mandatory' });
         }
         if (!req.body.password || !req.body.passwordConfirm) {
-            errors.push({message: 'Password field is mandatory'});
+            errors.push({ message: 'Password field is mandatory' });
         }
         if (req.body.password !== req.body.passwordConfirm) {
-            errors.push({message: 'Passwords do not match'});
+            errors.push({ message: 'Passwords do not match' });
         }
 
         if (errors.length > 0) {
@@ -58,7 +58,7 @@ module.exports = {
                 email: req.body.email
             });
         } else {
-            User.findOne({email: req.body.email}).then(user => {
+            User.findOne({ email: req.body.email }).then(user => {
                 if (user) {
                     req.flash('error-message', 'Email already exists, try to login.');
                     res.redirect('/login');
@@ -79,8 +79,8 @@ module.exports = {
         }
     },
     //dasdasdas
- 
-    
+
+
 
 
 
@@ -90,47 +90,46 @@ module.exports = {
         const id = req.params.id;
 
         Post.findById(id)
-            .populate({path: 'comments', populate: {path: 'user', model: 'user'}})
+            .populate({ path: 'comments', populate: { path: 'user', model: 'user' } })
             .then(post => {
-            if (!post) {
-                res.status(404).json({message: 'No Post Found'});
-            }
-            else {
-                res.render('default/singlePost', {post: post, comments: post.comments});
-            }
-        })
+                if (!post) {
+                    res.status(404).json({ message: 'No Post Found' });
+                } else {
+                    res.render('default/singlePost', { post: post, comments: post.comments });
+                }
+            })
     },
 
 
- // let filename = '';
+    // let filename = '';
 
-        // if (!isEmpty(req.files)) {
-        //     let file = req.files.uploadedFile;
-        //     filename = file.name;
-        //     let uploadDir = './public/uploads/';
+    // if (!isEmpty(req.files)) {
+    //     let file = req.files.uploadedFile;
+    //     filename = file.name;
+    //     let uploadDir = './public/uploads/';
 
-        //     file.mv(uploadDir + filename, (err) => {
-        //         if (err)
-        //             throw err;
-        //     });
-        // }
+    //     file.mv(uploadDir + filename, (err) => {
+    //         if (err)
+    //             throw err;
+    //     });
+    // }
 
-//saDSDASDAS
-    submitComment: (req, res) => {   
-        if (req.user) {           
-            Post.findById(req.body.id).then(post => { 
-                 let filename = '';
+    //saDSDASDAS
+    submitComment: (req, res) => {
+        if (req.user) {
+            Post.findById(req.body.id).then(post => {
+                let filename = '';
 
                 if (!isEmpty(req.files)) {
-                 let file = req.files.uploadedFile;
-                 filename = file.name;
-                 let uploadDir = './public/uploads/';
+                    let file = req.files.uploadedFile;
+                    filename = file.name;
+                    let uploadDir = './public/uploads/';
 
-                 file.mv(uploadDir + filename, (err) => {
-                if (err)
-                    throw err;
+                    file.mv(uploadDir + filename, (err) => {
+                        if (err)
+                            throw err;
                     });
-                 }
+                }
                 const newComment = new Comment({
                     user: req.user.id,
                     file: `/uploads/${filename}`
@@ -138,16 +137,14 @@ module.exports = {
                 post.comments.push(newComment);
                 post.save().then(savedPost => {
                     newComment.save().then(savedComment => {
-                      req.flash('success-message', 'Your file was submitted for review.');
-                      res.redirect(`/post/${post._id}`);
+                        req.flash('success-message', 'Your file was submitted for review.');
+                        res.redirect(`/post/${post._id}`);
                     });
                 });
 
 
             })
-        }
-
-        else {
+        } else {
             req.flash('error-message', 'Login first to comment');
             res.redirect('/login');
         }
@@ -155,4 +152,3 @@ module.exports = {
     }
 
 };
-
