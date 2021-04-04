@@ -96,6 +96,7 @@ router.get("/getRole", (req, res) => {
 })
 
 router.get("/manage", (req, res) => {
+    //hi
     if (req.session.role == "AD") {
         res.render("admin/manage")
     } else {
