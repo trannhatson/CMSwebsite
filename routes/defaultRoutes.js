@@ -85,16 +85,7 @@ router.route('/post/:id')
     .post(defaultController.submitComment);
 
 
-router.get('/set_session', (req, res) => {
-    //set a object to session
-    req.session.role = {
-        website: 'anonystick.com',
-        type: 'blog javascript',
-        like: '4550'
-    }
 
-    return res.status(200).json({ status: 'success' })
-})
 router.get("/getRole", (req, res) => {
     if (req.session.role) {
         return res.status(200).json({ status: 'success', session: req.session.role })
